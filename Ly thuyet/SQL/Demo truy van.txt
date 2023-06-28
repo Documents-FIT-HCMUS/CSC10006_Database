@@ -1,0 +1,91 @@
+use ql_phim
+set dateformat dmy
+insert muonphim (cmnd, tenphim,stt,ngaymuon)
+values('11111','aa',1,'30/12/2000')
+--truy vấn đơn giản
+--select ds t
+--from ds bảng
+--where đk
+--order by ds tt desc (giảm), asc
+---cho biết giáo viên sinh trước năm 2000
+select magv, hoten 
+from giaovien gv
+where year(gv.ngsinh) < 2000
+--cho biết tên gv không có người quản lý
+select * from giaovien
+select gv.hoten
+from giaovien gv
+where gv.gvqlcm is null
+--cho biết hoten, lương, tuổi của giáo viên họ nguyễn
+select gv.hoten, gv.luong, datediff(year,gv.ngsinh, getdate()) n'tuổi'
+from giaovien gv
+where gv.hoten like n'% ___'--%: n kí tự; _: 1 kí tự
+--cho biết tên gv và tên bm
+--tích đề các
+select gv.hoten, bm.tenbm
+from giaovien gv, bomon bm,khoa k
+where gv.mabm = bm.mabm and k.makhoa = bm.makhoa
+select * from bomon
+select * from giaovien
+--join
+select gv.tengv, bm.tenbm
+from giaovien gv join bomon bm on gv.mabm = bm.mabm
+join khoa k on k.makhoa = bm.makhoa
+--cho biết tên giáo viên, tên bm, lương. xếp giảm theo lương
+--nếu trùng xếp tăng theo tên gv
+select gv.hoten, bm.tenbm, gv.luong
+from giaovien gv join bomon bm on gv.mabm = bm.mabm
+order by gv.luong desc, gv.hoten 
+--truy vấn trên tập hợp (điều kiện: khả hợp)
+--hội: union
+--cho biết giáo viên hoặc thuộc bm = httt hoặc làm gvqlcm
+select *
+from giaovien gv
+where gv.mabm = 'httt'
+union
+select a.*
+from giaovien a join giaovien b on a.magv = b.gvqlcm
+
+--giao: intersect
+--cho biết bộ môn có trưởng bộ môn và 
+--thuộc khoa công nghệ thông
+select b.*
+from bomon b
+where b.truongbm is not null
+intersect
+select b.*
+from bomon b join khoa k on k.makhoa = b.makhoa
+where k.tenkhoa = n'công nghệ thông tin'
+--trừ: except
+--cho biết bộ môn không có giáo viên
+select b.*
+from bomon b
+except
+select b.*
+from giaovien gv join bomon b on b.mabm = gv.mabm
+---phép kết ngoài : left - right - full
+select bm.*
+from bomon bm left join giaovien gv on gv.mabm = bm.mabm
+where gv.mabm is null
+select *
+from bomon bm right join giaovien gv on gv.mabm = bm.mabm
+select *
+from bomon bm full join giaovien gv on gv.mabm = bm.mabm
+--------------------
+--truy vấn gom nhóm
+--5 select
+--1 from
+--2 where
+--3 group by ds thuộc tính gom nhóm
+--4 having đk sau gom nhóm
+-----------------
+--cho biết tên trưởng bm và số lượng gv trong bm
+select gv.mabm, count(*) slgv, tbm.hoten
+from giaovien gv join bomon bm on bm.mabm = gv.mabm
+join giaovien tbm on tbm.magv = bm.truongbm
+group by  gv.mabm,tbm.hoten,gv.hoten
+having count(*) > 2 and gv.hoten like n'nguyễn %'
+--cho biết giáo viên có lương cao nhất
+--cho biết lương cao nhất của giáo viên
+select max(luong)
+from giaovien

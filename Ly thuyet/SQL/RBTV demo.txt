@@ -1,0 +1,66 @@
+--kiểm tra RBTV 
+--1. dùng RBTV hqtcsdl hỗ trợ: PK,FK, check
+--2. dùng trigger (tự cài)
+--vd: phái = nam , nữ
+--btah: gv: i(+) D(-) U(+ phai)
+create 
+--alter
+trigger r1 
+on GIAOVIEN
+for insert, update
+as
+	select * from inserted
+	select * from deleted
+	--kiểm tra điều kiện
+	if exists(select * from inserted i 
+	where i.PHAI not in ('nam',N'nữ') )
+	begin
+		raiserror ('r1: loi', 16,1);
+		rollback
+	end
+
+go
+select * from GIAOVIEN
+insert GIAOVIEN (MAGV, phai)
+values('202','na1'),('203',N'nữ')
+insert GIAOVIEN (MAGV, phai)
+values('204','na1')
+insert GIAOVIEN (MAGV, phai)
+values('205','na1')
+update GIAOVIEN 
+set phai = 'nam'
+where magv = '201'
+--3. proc
+go
+create 
+--alter
+proc pr1 (@magv varchar(10), @phai varchar(10))
+as
+	if @phai not in ('nam',N'nữ')
+	begin
+		raiserror ('r2: loi', 16,1);
+		return;
+	end
+	insert GIAOVIEN(magv, phai)
+	values(@magv, @phai)
+go
+exec pr1 205,'na'
+--3. transaction
+go
+create 
+--alter
+proc pr2 (@madt varchar(4), @tendt nvarchar(10), @stt int)
+as
+begin tran
+	Begin try
+	insert DETAI(madt, TENDT)
+	values(@madt, @tendt)
+	insert CONGVIEC(madt, SOTT)
+	values(@madt, @stt)
+	commit
+	end try
+	begin catch
+		rollback
+	end catch
+
+go
